@@ -6,6 +6,123 @@
     <title>прогноз погоды</title>
     <link rel="stylesheet" href="main.css">
 </head>
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Rubik:300,regular,500,600,700,800,900);
+*{
+    font-family: "Rubik", sans-serif;
+}
+body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 50px;
+}
+.header{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px 15px 50px;
+    background: linear-gradient(92deg, #00aeff 0%, #99ffe5 100%), #232323;
+}
+.title{
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 44px;
+    color: #ffffff;
+}
+.form{
+    width: 460px;
+    justify-content: space-between;
+    display: flex;
+    background: #fff;
+    border-radius: 6px;
+    height: 54px;
+}
+.btn{
+    width: 145px;
+    height: 54px;
+    background: #4855ff;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 20px;
+}
+.input{
+    padding: 15px;
+    flex-grow: 1;
+    border-radius: 6px;
+}
+
+@keyframes slidein {
+    from {
+        top:10px;
+    }
+  
+    to {
+        top: 0px;
+    }
+  }
+
+
+.card{
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    position: relative;
+    width: 360px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 20px rgba(27, 108, 114, 0.25);
+    animation: slidein 1s ease;
+}
+.card::before{
+    content: '';
+    width: calc(100% - 20px);
+    height: 100%;
+    left: 10px;
+    bottom: -10px;
+    display: block;
+    position: absolute;
+    z-index: -1;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 20px rgba(27, 108, 114, 0.25);
+}
+
+.card-city{
+    font-size: 28px;
+    line-height: 33px;
+    font-weight: 500;
+    color: #000;
+}
+.card-city span{
+    vertical-align: text-top;
+    display: inline-block;
+    padding: 3px 5px ;
+    background: #4855ff;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+}
+.card-wather{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.card-value{
+    line-height: 1;
+    font-size: 48px;
+}
+.card-value sup{
+    font-size: 50%;
+}
+.card-discription{
+    font-size: 20px;
+}
+    </style>
 <body>
 
     <header class="header">
@@ -25,6 +142,66 @@
     </div> -->
 
 
-    <script src="main.js"></script>
+    <script >
+const apiKey = 'cc1588bbd73444a8ba991712242709';
+const header = document.querySelector('.header');
+const form =document.querySelector('#form');
+const input = document.querySelector('#inputCity');
+
+function removeCard(){
+    const prevCard=  document.querySelector('.card');
+    if(prevCard) prevCard.remove();
+}
+function showError(errorMessage){
+    const html = `<div class="card">${errorMessage}</div>`
+    header.insertAdjacentHTML('afterend',html);
+}
+function showCard({ name, country, temp, icon, text}){
+    const html = `
+    <div class="card">
+    <h2 class="card-city">${name}<span>${country}</span></h2>
+    <div class="card-wather">
+        <div class="card-value">${temp}<sup>°c</sup></div>
+        <img class="card-img" src="${icon}" alt="Wather">
+    </div>
+    <div class="card-discription">${text}</div>
+    </div>`;
+
+
+    //вывод на старницу всей карточки
+    header.insertAdjacentHTML('afterend',html);
+}
+async function getWeather(city){
+    const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`;
+    const response = await fetch(url);
+    const data = await response.json()
+    console.log(data);
+    return data;
+}
+form.onsubmit = async function(e){
+    e.preventDefault();
+    let city = input.value.trim();
+    //Полчаем данные с сервера
+    const data = await getWeather(city);
+
+    if (data.error){
+        removeCard();
+        showError(data.error.message);
+    }
+    else
+    {
+        removeCard();
+        const weatherData = {
+            name: data.location.name,
+            country: data.location.country,
+            temp: data.current.temp_c,
+            icon: data.current.condition.icon,
+            text: data.current.condition.text,
+
+        };
+        showCard(weatherData);
+    }
+}
+    </script>
 </body>
 </html>
